@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [query, setQuery] = useState("");
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+      {/* Sticky header with brand */}
+      <header className="header">
+        <div className="header-inner">
+          <div className="brand" aria-label="Memogram">
+            <div className="brand-badge">M</div>
+            <div>Memogram</div>
+          </div>
 
-export default App
+          <div className="actions">
+            {/* Placeholder for future controls (sort, reset, etc.) */}
+          </div>
+        </div>
+      </header>
+
+      {/* Main content container */}
+      <div className="container">
+        {/* Search bar */}
+        <input
+          className="searchbar"
+          placeholder="Search memes… (coming next step)"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Search memes"
+        />
+
+        {/* Responsive grid (cards will be added in step 2) */}
+        <div className="grid" role="list" aria-label="Memogram feed grid">
+          {/* Empty state for now */}
+          <div
+            role="listitem"
+            className="card"
+            aria-label="empty-state"
+            style={{ padding: 16 }}
+          >
+            {/* This is a temporary placeholder; we will render real cards next step */}
+            <div className="card-inner">
+              <div className="card-title">Welcome to Memogram 👋</div>
+              <div className="card-caption">
+                Step 1 complete — the UI shell is ready. In the next step we’ll
+                add real meme data and likes with localStorage.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
