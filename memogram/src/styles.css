@@ -71,4 +71,30 @@
   .card-inner { padding: 12px; display: grid; gap: 8px; }
   .card-title { font-weight: 700; }
   .card-caption { color: var(--muted); font-size: .95rem; }
+  .button {
+    border: 1px solid rgba(255,255,255,.1);
+    background: var(--panel);
+    color: var(--text);
+    padding: 8px 12px; border-radius: 10px;
+    cursor: pointer; transition: .15s ease;
+  }
+  .button:hover { border-color: rgba(255,255,255,.2); transform: translateY(-1px); }
+  .button:focus-visible { outline: none; box-shadow: var(--ring); }
+  
+  .badge {
+    font-size: .8rem; color: var(--muted);
+    border: 1px dashed rgba(255,255,255,.15);
+    padding: 4px 8px; border-radius: 999px;
+  }
+  
+  .like {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(255,255,255,.1); padding: 6px 10px; border-radius: 999px;
+    background: #171724; cursor: pointer; transition: .15s ease;
+  }
+  .like[data-active="true"] {
+    background: color-mix(in oklab, var(--brand) 25%, #171724);
+    border-color: color-mix(in oklab, var(--brand) 40%, #ffffff1a);
+  }
+  .like:focus-visible { outline: none; box-shadow: var(--ring); }
   
