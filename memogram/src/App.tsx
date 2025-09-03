@@ -1,11 +1,36 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { MEMES } from "./data/memes";
+import { MemeCard } from "./components/MemeCard";
+import { resetLikes } from "./utils/storage";
+
 
 export default function App() {
   const [query, setQuery] = useState("");
 
+  const [sort, setSort] = useState<"new" | "rand">("new");
+
+
+  const items = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let arr = MEMES.filter(
+      (m) =>
+        m.title.toLowerCase().includes(q) ||
+        (m.caption ?? "").toLowerCase().includes(q) ||
+        (m.tags ?? []).some((t) => t.toLowerCase().includes(q))
+    );
+
+    if (sort === "rand") {
+      arr = [...arr].sort(() => Math.random() - 0.5);
+    } else {
+      arr = [...arr].sort((a, b) =>
+        (b.createdAt ?? "") > (a.createdAt ?? "") ? 1 : -1
+      );
+    }
+    return arr;
+  }, [query, sort]);
+
   return (
     <>
-      {/* Sticky header with brand */}
       <header className="header">
         <div className="header-inner">
           <div className="brand" aria-label="Memogram">
@@ -14,40 +39,57 @@ export default function App() {
           </div>
 
           <div className="actions">
-            {/* Placeholder for future controls (sort, reset, etc.) */}
+            <select
+              className="button"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as "new" | "rand")}
+              aria-label="Sort feed"
+            >
+              <option value="new">Newest</option>
+              <option value="rand">Shuffle</option>
+            </select>
+
+            <button
+              className="button"
+              onClick={() => {
+                if (confirm("Reset all likes on this device?")) {
+                  resetLikes();
+                  setSort((s) => (s === "new" ? "rand" : "new"));
+                }
+              }}
+            >
+              Reset likes
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main content container */}
       <div className="container">
-        {/* Search bar */}
         <input
           className="searchbar"
-          placeholder="Search memes… (coming next step)"
+          placeholder="Search memes… (title, caption, tags)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search memes"
         />
 
-        {/* Responsive grid (cards will be added in step 2) */}
         <div className="grid" role="list" aria-label="Memogram feed grid">
-          {/* Empty state for now */}
-          <div
-            role="listitem"
-            className="card"
-            aria-label="empty-state"
-            style={{ padding: 16 }}
-          >
-            {/* This is a temporary placeholder; we will render real cards next step */}
-            <div className="card-inner">
-              <div className="card-title">Welcome to Memogram 👋</div>
-              <div className="card-caption">
-                Step 1 complete — the UI shell is ready. In the next step we’ll
-                add real meme data and likes with localStorage.
+          {items.map((m) => (
+            <div role="listitem" key={m.id}>
+              <MemeCard meme={m} />
+            </div>
+          ))}
+
+          {items.length === 0 && (
+            <div className="card" style={{ padding: 16 }}>
+              <div className="card-inner">
+                <div className="card-title">No results</div>
+                <div className="card-caption">
+                  Try a different search term or clear the query.
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>
