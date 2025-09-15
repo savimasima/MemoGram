@@ -46,7 +46,17 @@ export function MemeCard({ meme }: { meme: Meme }) {
       <div className="card-inner">
         <div className="card-title">{meme.title}</div>
         {meme.caption && <div className="card-caption">{meme.caption}</div>}
-
+        {meme.sourceLink && (
+          <a
+            href={meme.sourceLink}
+            target="_blank"
+            rel="noreferrer"
+            className="card-caption"
+            style={{ textDecoration: "none" }}
+          >
+            View on Reddit → 
+          </a>
+        )}
         <div className="footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
           <LikeButton memeId={meme.id} />
           <div className="badge">
