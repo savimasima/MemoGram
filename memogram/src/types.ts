@@ -9,4 +9,3 @@ export type Meme = {
   author?: string;
   subreddit?: string;
 };
-  
