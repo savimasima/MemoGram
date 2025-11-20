@@ -1,4 +1,4 @@
-import { Meme } from "../types";
+import type { Meme } from "../types";
 import { LikeButton } from "./LikeButton";
 
 function TextMeme({ title, caption }: { title: string; caption?: string }) {

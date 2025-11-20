@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchMemes } from "./api/memeApi";
-import { Meme } from "./types";
+import type { Meme } from "./types";
 import { MemeCard } from "./components/MemeCard";
 import { resetLikes } from "./utils/storage";
 
