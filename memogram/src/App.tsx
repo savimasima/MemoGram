@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchMemes } from "./api/memeApi";
 import type { Meme } from "./types";
 import { MemeCard } from "./components/MemeCard";
-import { resetLikes } from "./utils/storage";
 
 const SUBREDDITS = ["", "memes", "dankmemes", "me_irl", "wholesomememes"];
 
@@ -89,19 +88,6 @@ export default function App() {
               <option value="new">Newest</option>
               <option value="rand">Shuffle</option>
             </select>
-
-            {/* Reset likes */}
-            <button
-              className="button"
-              onClick={() => {
-                if (confirm("Reset all likes on this device?")) {
-                  resetLikes();
-                  setSort((s) => (s === "new" ? "rand" : "new"));
-                }
-              }}
-            >
-              Reset likes
-            </button>
           </div>
         </div>
       </header>
@@ -116,7 +102,7 @@ export default function App() {
           aria-label="Search memes"
         />
 
-        {err && (
+        {err && !loading && items.length === 0 && (
           <div className="card" style={{ padding: 16, marginTop: 16 }}>
             <div className="card-inner">
               <div className="card-title">Load error</div>
