@@ -7,5 +7,5 @@ if (!process.env.JWT_SECRET) {
 
 export const ENV = {
   PORT: process.env.PORT || "4000",
-  JWT_SECRET: process.env.JWT_SECRET
+  JWT_SECRET: process.env.JWT_SECRET as string,
 };
