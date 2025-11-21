@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, FormEvent } from "react";
 import { fetchMemes } from "./api/memeApi";
 import type { Meme } from "./types";
 import { MemeCard } from "./components/MemeCard";
+import { useAuth } from "./auth/AuthContext";
 
 const SUBREDDITS = ["", "memes", "dankmemes", "me_irl", "wholesomememes"];
 
@@ -13,11 +14,24 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const {
+    user,
+    loading: authLoading,
+    error: authError,
+    login,
+    register,
+    logout,
+  } = useAuth();
+
   useEffect(() => {
     const ac = new AbortController();
     setLoading(true);
     setErr(null);
-    fetchMemes({ count: 18, subreddit: subreddit || undefined, signal: ac.signal })
+    fetchMemes({
+      count: 18,
+      subreddit: subreddit || undefined,
+      signal: ac.signal,
+    })
       .then((list) => {
         const mapped: Meme[] = list.map((m, idx) => ({
           id: `${m.subreddit}:${m.postLink}:${idx}`,
@@ -25,10 +39,10 @@ export default function App() {
           caption: `${m.subreddit} • ↑${m.ups}`,
           imageUrl: m.url,
           tags: [m.subreddit],
-          createdAt: new Date().toISOString(), 
+          createdAt: new Date().toISOString(),
           sourceLink: m.postLink,
           author: m.author,
-          subreddit: m.subreddit
+          subreddit: m.subreddit,
         }));
         setItems(mapped);
       })
@@ -48,14 +62,13 @@ export default function App() {
     if (sort === "rand") {
       arr = [...arr].sort(() => Math.random() - 0.5);
     } else {
-      arr = [...arr]; 
+      arr = [...arr];
     }
     return arr;
   }, [items, query, sort]);
 
   return (
     <>
-      {/* Header */}
       <header className="header">
         <div className="header-inner">
           <div className="brand" aria-label="Memogram">
@@ -63,8 +76,10 @@ export default function App() {
             <div>Memogram</div>
           </div>
 
-          <div className="actions">
-            {/* Subreddit source */}
+          <div
+            className="actions"
+            style={{ gap: 12, alignItems: "center", display: "flex" }}
+          >
             <select
               className="button"
               value={subreddit}
@@ -78,7 +93,6 @@ export default function App() {
               ))}
             </select>
 
-            {/* Sorting */}
             <select
               className="button"
               value={sort}
@@ -88,12 +102,39 @@ export default function App() {
               <option value="new">Newest</option>
               <option value="rand">Shuffle</option>
             </select>
+
+            {authLoading ? (
+              <span style={{ fontSize: 12, opacity: 0.7 }}>Checking session…</span>
+            ) : user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 13 }}>
+                  Signed in as <strong>{user.username}</strong>
+                </span>
+                <button
+                  className="button"
+                  type="button"
+                  onClick={logout}
+                  style={{ fontSize: 12, paddingInline: 10 }}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <span style={{ fontSize: 13, opacity: 0.8 }}>Not signed in</span>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Main */}
       <div className="container">
+        {!authLoading && !user && (
+          <AuthForms
+            authError={authError}
+            onLogin={login}
+            onRegister={register}
+          />
+        )}
+
         <input
           className="searchbar"
           placeholder="Search memes… (title, caption, tags)"
@@ -140,5 +181,160 @@ export default function App() {
         </div>
       </div>
     </>
+  );
+}
+
+type AuthFormsProps = {
+  authError: string | null;
+  onLogin: (data: { emailOrUsername: string; password: string }) => Promise<void>;
+  onRegister: (data: {
+    email: string;
+    username: string;
+    password: string;
+    displayName?: string;
+  }) => Promise<void>;
+};
+
+function AuthForms({ authError, onLogin, onRegister }: AuthFormsProps) {
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [pending, setPending] = useState(false);
+
+  const [loginEmailOrUsername, setLoginEmailOrUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const [regEmail, setRegEmail] = useState("");
+  const [regUsername, setRegUsername] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regDisplayName, setRegDisplayName] = useState("");
+
+  async function handleLogin(e: FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    try {
+      await onLogin({
+        emailOrUsername: loginEmailOrUsername,
+        password: loginPassword,
+      });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleRegister(e: FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    try {
+      await onRegister({
+        email: regEmail,
+        username: regUsername,
+        password: regPassword,
+        displayName: regDisplayName || undefined,
+      });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div
+      className="card"
+      style={{ padding: 16, marginBottom: 16, maxWidth: 480 }}
+    >
+      <div className="card-inner">
+        <div className="card-title">
+          {mode === "login" ? "Sign in to Memogram" : "Create a Memogram account"}
+        </div>
+
+        {authError && (
+          <div style={{ color: "#e11d48", fontSize: 13, marginBottom: 8 }}>
+            {authError}
+          </div>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginBottom: 12,
+            fontSize: 12,
+          }}
+        >
+          <button
+            type="button"
+            className="button"
+            onClick={() => setMode("login")}
+            style={{ opacity: mode === "login" ? 1 : 0.6 }}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            className="button"
+            onClick={() => setMode("register")}
+            style={{ opacity: mode === "register" ? 1 : 0.6 }}
+          >
+            Register
+          </button>
+        </div>
+
+        {mode === "login" ? (
+          <form
+            onSubmit={handleLogin}
+            style={{ display: "flex", flexDirection: "column", gap: 8 }}
+          >
+            <input
+              className="searchbar"
+              placeholder="Email or username"
+              value={loginEmailOrUsername}
+              onChange={(e) => setLoginEmailOrUsername(e.target.value)}
+            />
+            <input
+              className="searchbar"
+              type="password"
+              placeholder="Password"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+            />
+            <button className="button" type="submit" disabled={pending}>
+              {pending ? "Signing in…" : "Sign in"}
+            </button>
+          </form>
+        ) : (
+          <form
+            onSubmit={handleRegister}
+            style={{ display: "flex", flexDirection: "column", gap: 8 }}
+          >
+            <input
+              className="searchbar"
+              placeholder="Email"
+              value={regEmail}
+              onChange={(e) => setRegEmail(e.target.value)}
+            />
+            <input
+              className="searchbar"
+              placeholder="Username"
+              value={regUsername}
+              onChange={(e) => setRegUsername(e.target.value)}
+            />
+            <input
+              className="searchbar"
+              type="password"
+              placeholder="Password"
+              value={regPassword}
+              onChange={(e) => setRegPassword(e.target.value)}
+            />
+            <input
+              className="searchbar"
+              placeholder="Display name (optional)"
+              value={regDisplayName}
+              onChange={(e) => setRegDisplayName(e.target.value)}
+            />
+            <button className="button" type="submit" disabled={pending}>
+              {pending ? "Creating account…" : "Register"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }

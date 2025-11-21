@@ -17,7 +17,7 @@ export function LikeButton({ memeId }: { memeId: string }) {
       aria-label={active ? "Unlike" : "Like"}
     >
       <span>❤️</span>
-      <span>{count}</span>
+      <span className="like-count">{count}</span>
     </button>
   );
 }
